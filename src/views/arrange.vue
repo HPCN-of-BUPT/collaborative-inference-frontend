@@ -19,28 +19,55 @@
             <el-menu-item index="3" style="text-align: center">
               <span slot="title">模型测试</span>
             </el-menu-item>
+            <!--
             <el-menu-item index="4" style="text-align: center">
               <span slot="title">结果展示</span>
             </el-menu-item>
+            -->
           </el-menu>
         </div>
       </el-col>
       <el-col :span="20">
-        <div style="width: 80%;margin-left: 70px">
-          <el-row :gutter="20">
-            <el-col :span="12">
+        <div style="width: 60%;margin-left: 70px">
               <el-card class="yunduan" style="margin: 10px">
                 <div slot="header" class="clearfix">
-                  <span>云模型部署</span>
+                  <span>模型部署</span>
                 </div>
 
                 <div class="input_model">
                   <el-row :gutter="20">
                     <el-col :span="6">
-                      <span class="font_style">IP地址</span>
+                      <span class="font_style">部署模型</span>
+                    </el-col>
+                    <el-col :span="18" style="text-align: left">
+                      <el-select v-model="model_type" placeholder="模型选择" class="input">
+                        <el-option label="" value="YOLOv3"></el-option>
+                        <el-option label="" value="ResNet"></el-option>
+                      </el-select>
+                    </el-col>
+                  </el-row>
+                </div>
+                <div class="input_model">
+                  <el-row :gutter="20">
+                    <el-col :span="6">
+                      <span class="font_style">通信限制条件</span>
+                    </el-col>
+                    <el-col :span="18" style="text-align: left">
+                      <el-select v-model="res_type" placeholder="条件选择" class="input">
+                        <el-option label="限制条件一" value="1"></el-option>
+                        <el-option label="限制条件一" value="2"></el-option>
+                      </el-select>
+                    </el-col>
+                  </el-row>
+                </div>
+
+                <div class="input_model">
+                  <el-row :gutter="20">
+                    <el-col :span="6">
+                      <span class="font_style">云IP地址</span>
                     </el-col>
 
-                    <el-col :span="18">
+                    <el-col :span="18" style="text-align: left">
                       <el-input v-model="cloud_ip" placeholder="请输入内容" class="input"></el-input>
                     </el-col>
                   </el-row>
@@ -49,48 +76,26 @@
                 <div class="input_model">
                   <el-row :gutter="20">
                     <el-col :span="6">
-                      <span class="font_style">端口号</span>
+                      <span class="font_style">云端口号</span>
                     </el-col>
 
-                    <el-col :span="18">
+                    <el-col :span="18" style="text-align: left">
                       <el-input v-model="cloud_port" placeholder="请输入内容" class="input"></el-input>
                     </el-col>
                   </el-row>
                 </div>
 
+                <div class="input_model" style="text-align: center">
+                  <el-button type="primary" size="small" @click="cloud_deploy" >云模型部署</el-button>
+                </div>
+
                 <div class="input_model">
                   <el-row :gutter="20">
                     <el-col :span="6">
-                      <span style="text-align: left" class="font_style">部署模型</span>
+                      <span class="font_style">边IP地址</span>
                     </el-col>
+
                     <el-col :span="18" style="text-align: left">
-                      <el-select v-model="model_type" placeholder="云模型选择" class="input">
-                        <el-option label="" value="YOLOv3"></el-option>
-                        <el-option label="" value="ResNet"></el-option>
-                      </el-select>
-                    </el-col>
-                  </el-row>
-                </div>
-
-                <div style="text-align: right">
-                  <el-button type="primary" size="small" @click="cloud_deploy">云模型部署</el-button>
-                </div>
-
-              </el-card>
-            </el-col>
-            <el-col :span="12">
-              <el-card class="bianduan" style="margin: 10px">
-                <div slot="header" class="clearfix">
-                  <span>边模型部署</span>
-                </div>
-
-                <div class="input_model">
-                  <el-row :gutter="20">
-                    <el-col :span="6">
-                      <span class="font_style">IP地址</span>
-                    </el-col>
-
-                    <el-col :span="18">
                       <el-input v-model="edge_ip" placeholder="请输入内容" class="input"></el-input>
                     </el-col>
                   </el-row>
@@ -99,35 +104,21 @@
                 <div class="input_model">
                   <el-row :gutter="20">
                     <el-col :span="6">
-                      <span class="font_style">端口号</span>
+                      <span class="font_style">边端口号</span>
                     </el-col>
 
-                    <el-col :span="18">
+                    <el-col :span="18" style="text-align: left">
                       <el-input v-model="edge_port" placeholder="请输入内容" class="input"></el-input>
                     </el-col>
                   </el-row>
                 </div>
 
-                <div class="input_model">
-                  <el-row :gutter="20">
-                    <el-col :span="6">
-                      <span style="text-align: left" class="font_style">部署模型</span>
-                    </el-col>
-                    <el-col :span="18" style="text-align: left">
-                      <el-select v-model="model_type" placeholder="边模型选择" class="input">
-                          <el-option label="" value="YOLOv3"></el-option>
-                          <el-option label="" value="Resnet"></el-option>
-                      </el-select>
-                    </el-col>
-                  </el-row>
+                <div class="input_model" style="text-align: center">
+                  <el-button type="primary" size="small" @click="edge_deploy" >边模型部署</el-button>
                 </div>
 
-                  <div style="text-align: right">
-                    <el-button type="primary" size="small" @click="edge_deploy">边模型部署</el-button>
-                  </div>
+
               </el-card>
-            </el-col>
-          </el-row>
         </div>
 
       </el-col>
@@ -154,7 +145,8 @@ export default {
         name: 'food.jpeg',
         url: 'https://fuss10.elemecdn.com/3/63/4e7f3a15429bfda99bce42a18cdd1jpeg.jpeg?imageMogr2/thumbnail/360x360/format/webp/quality/100'
       }],
-      model_type:''
+      model_type:'',
+      res_type:''
     };
   },
   methods: {
@@ -270,11 +262,11 @@ export default {
 
 .input {
   height: 15px;
+  width: 300px;
 }
 
 .input_model {
   margin: 20px;
-  width: 80%;
 }
 .input_model2 {
   margin: 20px;

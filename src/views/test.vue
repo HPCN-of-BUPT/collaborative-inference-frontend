@@ -18,9 +18,11 @@
             <el-menu-item index="3" style="text-align: center">
               <span slot="title">模型测试</span>
             </el-menu-item>
+            <!--
             <el-menu-item index="4" style="text-align: center">
               <span slot="title">结果展示</span>
             </el-menu-item>
+            -->
           </el-menu>
         </div>
       </el-col>
@@ -82,16 +84,6 @@
                 </el-table-column>
               </el-table>
             </el-tab-pane>
-                <el-tab-pane label="模块部分" name="second">
-                  <el-table :data="cloud_tableData" style="width: 100%" :row-class-name="CurrentRow">
-                    <el-table-column prop="type" label="模型类型">
-                    </el-table-column>
-                    <el-table-column prop="flops" label="浮点运算量">
-                    </el-table-column>
-                    <el-table-column prop="params" label="参数量">
-                    </el-table-column>
-                  </el-table>
-                </el-tab-pane>
 
                 <el-tab-pane label="系统" name="third">
                   <el-table :data="system_tableData" style="width: 100%" :row-class-name="CurrentRow">
@@ -102,6 +94,8 @@
                     <el-table-column prop="edge_time" label="边端推理时间">
                     </el-table-column>
                     <el-table-column prop="cloud_time" label="云端推理时间">
+                    </el-table-column>
+                    <el-table-column prop="cloud_edge_ratio" label="云边协同比">
                     </el-table-column>
                     <el-table-column prop="transmit_time" label="传输时间">
                     </el-table-column>

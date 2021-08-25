@@ -19,9 +19,11 @@
             <el-menu-item index="3" style="text-align: center">
               <span slot="title">模型测试</span>
             </el-menu-item>
+            <!--
             <el-menu-item index="4" style="text-align: center">
               <span slot="title">结果展示</span>
             </el-menu-item>
+            -->
           </el-menu>
         </div>
       </el-col>
@@ -111,8 +113,8 @@
                         <!--
                         <el-option v-for="(item, index) in options" :key="index" :label="item.name" :value="item.id">
                         -->
-                        <el-option label="ResNet" value="1"></el-option>
-                        <el-option label="YOLOv3" value="2"></el-option>
+                        <el-option label="ResNet" value="ResNet"></el-option>
+                        <el-option label="YOLOv3" value="YOLOv3"></el-option>
                       </el-select>
                     </el-col>
                   </el-row>
@@ -204,11 +206,13 @@
 
                 <div>
                   <el-table :data="model_tableData" style="width: 100%">
-                    <el-table-column prop="type" label="模型类型">
+                    <el-table-column prop="end_type" label="模型类型">
                     </el-table-column>
-                    <el-table-column prop="flops" label="浮点运算量">
+                    <el-table-column prop="flops" label="浮点运算量(运算次数/秒)">
                     </el-table-column>
-                    <el-table-column prop="params" label="参数量">
+                    <el-table-column prop="params" label="参数量(params)">
+                    </el-table-column>
+                    <el-table-column prop="output_datasize" label="输出数据量(bytes)">
                     </el-table-column>
                   </el-table>
                 </div>
@@ -319,21 +323,18 @@ export default {
         },
         headers: {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Authorization"}
       }).then((response) => {
-        this.$message.success(response.data.result)
-        console.log(response.data.models)
+        this.$message.success("切割完成")
+        console.log(response.data.results)
 
-        if (response.data.result == "success") {
+        if (response.data.msg == "success") {
           while (this.percentage < 100)
             this.percentage++
-          var models = response.data.models
+          var infos = response.data.results
           this.model_tableData = [{
-            "type":"云模型", "flops": models.cloud.flops, "params": models.cloud.params
+            "end_type":"云模型", "flops": infos.cloud.flops, "params": infos.cloud.params,"output_datasize":infos.cloud.datasize
           },
             {
-              "type":"边模型", "flops": models.edge.flops, "params": models.edge.params
-            },
-            {
-              "type":"云-边模型", "flops": models.edge_cloud.flops, "params": models.edge_cloud.params
+              "end_type":"边模型", "flops": infos.edge.flops, "params": infos.edge.params,"output_datasize":infos.edge.datasize
             }]
         }
       })
