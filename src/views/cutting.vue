@@ -160,7 +160,7 @@
       <el-card class="card_res">
         <div slot="header">
           <span>模型切割评估</span>
-          <el-button style="float: right; padding: 3px 0" type="text">刷新</el-button>
+          <el-button style="float: right; padding: 3px 0" type="text" @click="review">查看上次结果</el-button>
         </div>
         <div>
 
@@ -258,7 +258,10 @@ export default {
       cutting: false,
       percentage: 0,
       restric_tableData: [],
-      model_tableData: []
+      model_tableData: [],
+      split_timer:null,
+      resList:[],
+      cutList:[]
     }
 
   },
@@ -302,15 +305,6 @@ export default {
       this.delay = this.bandwidth = ""
     },
     model_cut() {
-      this.cutting = true
-      this.before_cut = false
-      while (this.percentage <= 60)
-        this.percentage++
-      this.restric_tableData = [{"delay":this.delay,
-        "bandwidth": this.bandwidth,
-        "cloud_compute": this.cloud_computation,
-        "edge_compute": this.edge_computation,
-        "model_type": this.model_type}]
       axios({
         method: "POST",
         url: 'api' + '/cut',
@@ -323,22 +317,51 @@ export default {
         },
         headers: {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Authorization"}
       }).then((response) => {
-        this.$message.success("切割完成")
-        console.log(response.data.results)
-
-        if (response.data.msg == "success") {
-          while (this.percentage < 100)
+        if(response.status == 200){
+          this.$message.success("参数上传成功")
+          this.cutting = true
+          this.before_cut = false
+          while (this.percentage <= 30)
             this.percentage++
-          var infos = response.data.results
-          this.model_tableData = [{
-            "end_type":"云模型", "flops": infos.cloud.flops, "params": infos.cloud.params,"output_datasize":infos.cloud.datasize
-          },
-            {
-              "end_type":"边模型", "flops": infos.edge.flops, "params": infos.edge.params,"output_datasize":infos.edge.datasize
-            }]
+          this.resList = [{"delay":this.delay,
+            "bandwidth": this.bandwidth,
+            "cloud_compute": this.cloud_computation,
+            "edge_compute": this.edge_computation,
+            "model_type": this.model_type}]
+          this.restric_tableData = this.resList
+          let that = this
+          that.split_timer = setInterval(this.get_model_result(that), 3000)
         }
       })
 
+    },
+    get_model_result(that){
+      axios({
+        method: "GET",
+        url: 'api' + '/cut_result',
+        headers: {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Authorization"}
+      }).then((response) => {
+        this.$message.success("切割完成")
+        console.log(response)
+
+        if (response.status == 200 && response.data.msg == "success") {
+          clearInterval(that.split_timer)
+          while (this.percentage < 100)
+            this.percentage++
+          var infos = response.data.results
+          this.cutList = [{
+            "end_type":"云模型", "flops": infos.cloud.flops, "params": infos.cloud.params,"output_datasize":infos.cloud.output_size
+          },
+            {
+              "end_type":"边模型", "flops": infos.edge.flops, "params": infos.edge.params,"output_datasize":infos.edge.output_size
+            }]
+          this.model_tableData = this.cutList
+        }
+      })
+    },
+    review(){
+      this.restric_tableData = this.resList
+      this.model_tableData = this.cutList
     },
     model_cut_quit() {
       this.$message.success("已取消");

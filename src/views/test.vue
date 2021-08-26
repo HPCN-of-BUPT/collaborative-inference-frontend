@@ -198,7 +198,7 @@ export default {
         .then((response) =>{
           if(response.status == 200 && response.data.msg == 'true'){
             this.$message.success("检测完成")
-            clearInterval(that.result_timer);
+            clearInterval(that.result_timer)
 
             this.src2 = 'data:;base64,'+ response.data.img_base64['img_base64']
             this.system_tableData = [{'filename':msg['filename'],
