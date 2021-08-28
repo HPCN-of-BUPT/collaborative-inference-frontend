@@ -126,11 +126,24 @@
                       <span class="font_style">模型文件</span>
                     </el-col>
                     <el-col :span="19" style="padding-left: 30px;text-align: left">
-                      <el-button size="small" type="primary" v-on:click="true_upload">上传模型
-                        <input class="file" name="file" type="file" ref="upload_models"
-                               style="display: none"
-                               @change="upload_models($event)" accept=""/>
-                      </el-button>
+                      <el-row>
+                        <el-col :span="15">
+                          <el-select v-model="upload_else" placeholder="模型上传" @change="change_upload">
+                            <el-option label="上传模型" value="1"></el-option>
+                            <el-option label="模型训练" value="2"></el-option>
+                          </el-select>
+                        </el-col>
+                        <el-col :span="9">
+                          <div style="text-align: center" v-if="upload_true">
+                            <el-button size="small" type="primary" v-on:click="true_upload">上传
+                              <input class="file" name="file" type="file" ref="upload_models"
+                                     style="display: none"
+                                     @change="upload_models($event)" accept=""/>
+                            </el-button>
+                          </div>
+
+                        </el-col>
+                      </el-row>
                     </el-col>
                   </el-row>
                 </el-col>
@@ -138,14 +151,19 @@
               </el-row>
             </div>
             <div style="text-align: right">
-              <el-button type="primary" @click="model_cut">模型切割</el-button>
+              <el-button type="primary" @click="model_cut">开始</el-button>
             </div>
           </div>
           <div v-if="cutting">
-            <div>模型切割中</div>
-            <div style="margin: 20px">
-              <el-progress :text-inside="true" :stroke-width="20" :percentage="percentage"></el-progress>
+            <div>模型切割进度</div>
+            <div style="margin: 10px">
+              <el-steps :active="model_step" finish-status="success" align-center>
+                <el-step title="模型训练/上传模型"></el-step>
+                <el-step title="模型切割"></el-step>
+                <el-step title="模型评估"></el-step>
+              </el-steps>
             </div>
+
             <div style="text-align: right">
               <el-button type="primary" @click="model_cut_quit" size="small">返回</el-button>
             </div>
@@ -256,22 +274,24 @@ export default {
       model_type: '',
       before_cut: true,
       cutting: false,
-      percentage: 0,
       restric_tableData: [],
       model_tableData: [],
       split_timer:null,
       resList:[],
-      cutList:[]
+      cutList:[],
+      upload_else:'',
+      upload_true:true,
+      model_step:0
     }
 
   },
   methods: {
     handleSelect(key, keyPath) {
-      if (key == '1') {
+      if (key === '1') {
         this.$router.push('cutting')
-      } else if (key == '2') {
+      } else if (key === '2') {
         this.$router.push('arrange')
-      } else if (key == '3') {
+      } else if (key === '3') {
         this.$router.push('test')
       }
     },
@@ -305,6 +325,11 @@ export default {
       this.delay = this.bandwidth = ""
     },
     model_cut() {
+      this.cutting = true
+      this.before_cut = false
+      if(this.upload_else === '1'){
+        this.model_step = 1
+      }
       axios({
         method: "POST",
         url: 'api' + '/cut',
@@ -317,12 +342,9 @@ export default {
         },
         headers: {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Authorization"}
       }).then((response) => {
-        if(response.status == 200){
-          this.$message.success("参数上传成功")
-          this.cutting = true
-          this.before_cut = false
-          while (this.percentage <= 30)
-            this.percentage++
+        if(response.status === 200){
+          this.$message.success("切割完成")
+          this.model_step = 2
           this.resList = [{"delay":this.delay,
             "bandwidth": this.bandwidth,
             "cloud_compute": this.cloud_computation,
@@ -330,24 +352,23 @@ export default {
             "model_type": this.model_type}]
           this.restric_tableData = this.resList
           let that = this
-          that.split_timer = setInterval(this.get_model_result(that), 3000)
+          // that.split_timer = setInterval(this.get_model_result(that), 3000)
+          this.get_model_result()
         }
       })
 
     },
-    get_model_result(that){
+    get_model_result(){
       axios({
         method: "GET",
         url: 'api' + '/cut_result',
         headers: {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Authorization"}
       }).then((response) => {
-        this.$message.success("切割完成")
         console.log(response)
-
-        if (response.status == 200 && response.data.msg == "success") {
-          clearInterval(that.split_timer)
-          while (this.percentage < 100)
-            this.percentage++
+        if (response.status === 200 && response.data.msg === "success") {
+          this.$message.success("模型评估完成")
+          this.model_step = 3
+          // clearInterval(that.split_timer)
           var infos = response.data.results
           this.cutList = [{
             "end_type":"云模型", "flops": infos.cloud.flops, "params": infos.cloud.params,"output_datasize":infos.cloud.output_size
@@ -380,11 +401,25 @@ export default {
       elemIF.style.display = 'none'
       document.body.appendChild(elemIF)
     },
-    edge_download_frame() {
-
+    change_upload(){
+      if(this.upload_else === '1'){
+        this.upload_true = true
+      }else{
+        this.upload_true = false
+      }
     },
-    edge_download_params() {
-
+    train_model(){
+      axios({
+        method: "GET",
+        url: 'api' + '/train',
+        headers: {"Access-Control-Allow-Origin": "*", "Access-Control-Allow-Headers": "Content-Type,Authorization"}
+      }).then((response) => {
+        if (response.status === 200 && response.data === "success") {
+          this.$message.success("模型训练完成")
+          console.log(response)
+          this.model_step = 1
+        }
+      })
     }
   }
 }

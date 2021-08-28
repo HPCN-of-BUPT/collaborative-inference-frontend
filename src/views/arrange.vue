@@ -156,11 +156,11 @@ export default {
   },
   methods: {
     handleSelect(key, keyPath) {
-      if (key == '1') {
+      if (key === '1') {
         this.$router.push('cutting')
-      } else if (key == '2') {
+      } else if (key === '2') {
         this.$router.push('arrange')
-      } else if (key == '3') {
+      } else if (key === '3') {
         this.$router.push('test')
       }
     },

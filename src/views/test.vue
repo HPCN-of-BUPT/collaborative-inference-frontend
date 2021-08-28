@@ -29,6 +29,14 @@
       <el-col :span="20">
         <div style="width: 80%;margin-left: 30px">
           <el-card class="image_card" style="margin: 10px">
+            <div>检测进度</div>
+            <div style="margin: 10px">
+              <el-steps :active="test_step" finish-status="success" align-center>
+                <el-step title="上传图像"></el-step>
+                <el-step title="边端接收"></el-step>
+                <el-step title="边云检测"></el-step>
+              </el-steps>
+            </div>
 
             <div>
               <el-row>
@@ -89,16 +97,16 @@
                   <el-table :data="system_tableData" style="width: 100%" :row-class-name="CurrentRow">
                     <el-table-column prop="filename" label="文件名">
                     </el-table-column>
-                    <el-table-column prop="tensor_size" label="传输数据量">
+                    <el-table-column prop="transmit_size" label="传输数据量">
                   </el-table-column>
                     <el-table-column prop="edge_time" label="边端推理时间">
                     </el-table-column>
                     <el-table-column prop="cloud_time" label="云端推理时间">
                     </el-table-column>
-                    <el-table-column prop="cloud_edge_ratio" label="云边协同比">
-                    </el-table-column>
                     <el-table-column prop="transmit_time" label="传输时间">
                     </el-table-column>
+                    <el-table-column prop="cloud_edge_ratio" label="云边协同比">
+                  </el-table-column>
                     <el-table-column prop="time" label="总推理耗时">
                     </el-table-column>
                   </el-table>
@@ -128,16 +136,17 @@ export default {
       edge_cloud_tableData:[],
       system_tableData:[],
       edge_timer:null,
-      result_timer:null
+      result_timer:null,
+      test_step:0
     }
   },
   methods: {
     handleSelect(key, keyPath) {
-      if (key == '1') {
+      if (key === '1') {
         this.$router.push('cutting')
-      } else if (key == '2') {
+      } else if (key === '2') {
         this.$router.push('arrange')
-      } else if (key == '3') {
+      } else if (key === '3') {
         this.$router.push('test')
       }
     },
@@ -164,28 +173,23 @@ export default {
           var msg = response.data.msg
           var status = response.status
           console.log(response)
-          if(status == 200 && msg == 'success'){
+          if(status === 200 && msg === 'success'){
             this.$message.success("上传成功")
-
+            this.test_step = 1
             let _this = this;
-            _this.edge_timer = setInterval(this.getEdgeStatus(_this), 3000);
+            //_this.edge_timer = setInterval(this.getEdgeStatus(_this), 3000);
           }else{
             this.$message.success("上传失败")
           }
-          // this.src2 = 'data:;base64,'+ msg['img_base64']
-          // this.system_tableData = [{'filename':msg['filename'],
-          //                             'tensor_size':msg['transmitsize'],
-          //                               'edge_time':msg['edgetime'],
-          //                               'cloud_time':msg['cloudtime'],
-          //                               'transmit_time':msg['transmittime']}]
         })
 
     },
     getEdgeStatus(_this){
       this.$axios.get('api' + '/edge')
         .then((response) =>{
-          if(response.status == 200 && response.data.msg == 'true'){
+          if(response.status === 200 && response.data.msg === 'true'){
             this.$message.success("边端成功接收图像")
+            this.test_step = 2
             clearInterval(_this.edge_timer);
 
             let that = this
@@ -196,16 +200,21 @@ export default {
     getResult(that){
       this.$axios.get('api' + '/get_result')
         .then((response) =>{
-          if(response.status == 200 && response.data.msg == 'true'){
+          if(response.status === 200 && response.data.msg === 'true'){
             this.$message.success("检测完成")
+            this.test_step = 3
             clearInterval(that.result_timer)
 
             this.src2 = 'data:;base64,'+ response.data.img_base64['img_base64']
-            this.system_tableData = [{'filename':msg['filename'],
-                                          'tensor_size':msg['transmitsize'],
-                                             'edge_time':msg['edgetime'],
-                                             'cloud_time':msg['cloudtime'],
-                                            'transmit_time':msg['transmittime']}]
+            var results = response.data.results
+            this.system_tableData = [{'filename':results['filename'],
+                                          'transmit_size':results['transmit_size'],
+                                             'edge_time':results['edge_time'],
+                                             'cloud_time':results['cloud_time'],
+                                            'transmit_time':results['transmit_time'],
+                                            'cloud_edge_ratio': results['cloud_edge_ratio'],
+                                              'time':results['time']
+                                    }]
           }
         })
     },
