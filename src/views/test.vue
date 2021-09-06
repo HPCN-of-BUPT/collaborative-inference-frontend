@@ -176,36 +176,34 @@ export default {
           if(status === 200 && msg === 'success'){
             this.$message.success("上传成功")
             this.test_step = 1
-            let _this = this;
-            //_this.edge_timer = setInterval(this.getEdgeStatus(_this), 3000);
           }else{
             this.$message.success("上传失败")
           }
         })
+      this.edge_timer = setInterval(this.getEdgeStatus, 3000);
 
     },
-    getEdgeStatus(_this){
+    getEdgeStatus(){
       this.$axios.get('api' + '/edge')
         .then((response) =>{
           if(response.status === 200 && response.data.msg === 'true'){
             this.$message.success("边端成功接收图像")
             this.test_step = 2
-            clearInterval(_this.edge_timer);
-
-            let that = this
-            that.result_timer = setInterval(this.getResult(that), 8000);
+            clearInterval(this.edge_timer);
           }
         })
+      this.result_timer = setInterval(this.getResult, 3000)
     },
-    getResult(that){
+    getResult(){
       this.$axios.get('api' + '/get_result')
         .then((response) =>{
+          console.log(response)
           if(response.status === 200 && response.data.msg === 'true'){
             this.$message.success("检测完成")
             this.test_step = 3
-            clearInterval(that.result_timer)
+            clearInterval(this.result_timer)
 
-            this.src2 = 'data:;base64,'+ response.data.img_base64['img_base64']
+            this.src2 = 'data:;base64,'+ response.data.img_base64
             var results = response.data.results
             this.system_tableData = [{'filename':results['filename'],
                                           'transmit_size':results['transmit_size'],
