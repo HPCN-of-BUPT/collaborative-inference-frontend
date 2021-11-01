@@ -322,7 +322,9 @@ export default {
 
     },
     onClear() {
-      this.delay = this.bandwidth = ""
+      this.delay = this.bandwidth = ''
+      this.cloud_computation = this.edge_computation = ''
+      this.model_type = this.upload_else = ''
     },
     model_cut() {
       this.cutting = true
